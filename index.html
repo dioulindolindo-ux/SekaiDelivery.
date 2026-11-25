@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sushi Delivery | Cardápio</title>
+
+  <!-- Fonte -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- ============================================================
+       CSS (menu + header + carrinho)
+       ============================================================ -->
+  <style>
+    :root {
+      --preto:        #0d0d0d;
+      --preto-suave:  #1a1a1a;
+      --vermelho:     #d62828;
+      --vermelho-esc: #b01e1e;
+      --branco:       #ffffff;
+      --fundo:        #faf9f8;
+      --cinza:        #6b6b6b;
+      --borda:        #e5e5e5;
+      --sombra:       0 4px 20px rgba(0, 0, 0, .08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--fundo);
+      color: var(--preto);
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* ===== HEADER ===== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--preto);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .15);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      height: 72px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--branco);
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .logo-icon { font-size: 1.6rem; }
+    .logo-text strong { color: var(--vermelho); }
+
+    .nav { display: flex; gap: 28px; }
+
+    .nav a {
+      color: #d9d9d9;
+      text-decoration: none;
+      font-size: .95rem;
+      font-weight: 600;
+      position: relative;
+      transition: color .2s ease;
+    }
+
+    .nav a:hover { color: var(--branco); }
+
+    .nav a::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--vermelho);
+      transition: width .25s ease;
+    }
+
+    .nav a:hover::after { width: 100%; }
+
+    .btn-carrinho {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, .2);
+      border-radius: 12px;
+      color: var(--branco);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .btn-carrinho:hover {
+      border-color: var(--vermelho);
+      color: var(--vermelho);
+      transform: translateY(-2px);
+    }
+
+    .btn-carrinho:active { transform: scale(.95); }
+
+    .contador {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      background: var(--vermelho);
+      color: var(--branco);
+      font-size: .7rem;
+      font-weight: 700;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--preto);
+    }
+
+    .contador.oculto { display: none; }
+
+    /* ===== CARDÁPIO ===== */
+    .cardapio { padding: 64px 0; }
+
+    .cardapio-header { text-align: center; margin-bottom: 40px; }
+
+    .tag {
+      display: inline-block;
+      background: rgba(214, 40, 40, .1);
+      color: var(--vermelho);
+      font-size: .8rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    .cardapio-header h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--preto);
+      margin-bottom: 8px;
+    }
+
+    .cardapio-header h2::after {
+      content: "";
+      display: block;
+      width: 60px;
+      height: 4px;
+      background: var(--vermelho);
+      border-radius: 2px;
+      margin: 12px auto 0;
+    }
+
+    .cardapio-header p { color: var(--cinza); font-size: 1rem; }
+
+    .filtros {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+
+    .filtro {
+      background: transparent;
+      border: 2px solid var(--borda);
+      color: var(--preto-suave);
+      font-family: inherit;
+      font-weight: 600;
+      font-size: .9rem;
+      padding: 10px 22px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .filtro:hover { border-color: var(--vermelho); color: var(--vermelho); }
+
+    .filtro.ativo {
+      background: var(--vermelho);
+      border-color: var(--vermelho);
+      color: var(--branco);
+      box-shadow: 0 4px 14px rgba(214, 40, 40, .35);
+    }
+
+    .cardapio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 24px;
+    }
+
+    .card-produto {
+      background: var(--branco);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--sombra);
+      display: flex;
+      flex-direction: column;
+      transition: transform .25s ease, box-shadow .25s ease;
+      animation: aparecer .35s ease both;
+    }
+
+    .card-produto:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(214, 40, 40, .18);
+    }
+
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-img {
+      aspect-ratio: 4 / 3;
+      background: linear-gradient(135deg, var(--preto-suave), #2e2e2e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+    .card-produto:hover .card-img img { transform: scale(1.06); }
+
+    .placeholder-emoji {
+      font-size: 3.5rem;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.4));
+      transition: transform .3s ease;
+    }
+    .card-produto:hover .placeholder-emoji { transform: scale(1.15) rotate(-4deg); }
+
+    .card-info { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .card-info h3 { font-size: 1.02rem; font-weight: 600; color: var(--preto); }
+    .card-desc { font-size: .82rem; color: var(--cinza); line-height: 1.4; flex: 1; }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .preco { font-size: 1.1rem; font-weight: 700; color: var(--vermelho); white-space: nowrap; }
+
+    .btn-add {
+      background: var(--vermelho);
+      color: var(--branco);
+      border: none;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: .85rem;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .2s ease, transform .15s ease;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: var(--vermelho-esc); }
+    .btn-add:active { transform: scale(.95); }
+    .btn-add.adicionado { background: #2e7d32; pointer-events: none; }
+
+    /* ===== OVERLAY ===== */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .3s ease, visibility .3s ease;
+      z-index: 200;
+    }
+    .overlay.ativo { opacity: 1; visibility: visible; }
+
+    /* ===== SIDEBAR DO CARRINHO ===== */
+    .carrinho-sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 100%;
+      max-width: 400px;
+      height: 100vh;
+      background: var(--branco);
+      display: flex;
+      flex-direction: column;
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform .3s ease;
+      box-shadow: -8px 0 30px rgba(0, 0, 0, .2);
+    }
+    .carrinho-sidebar.ativo { transform: translateX(0); }
+
+    .carrinho-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--borda);
+    }
+    .carrinho-header h2 { font-size: 1.15rem; font-weight: 700; color: var(--preto); }
+
+    .btn-fechar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      background: transparent;
+      border: 2px solid var(--borda);
+      border-radius: 10px;
+      color: var(--preto-suave);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .btn-fechar:hover { border-color: var(--vermelho); color: var(--vermelho); }
+
+    .carrinho-itens {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .carrinho-itens::-webkit-scrollbar { width: 6px; }
+    .carrinho-itens::-webkit-scrollbar-thumb { background: var(--borda); border-radius: 3px; }
+
+    .carrinho-vazio {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 10px;
+      text-align: center;
+      color: var(--cinza);
+    }
+    .carrinho-vazio .emoji { font-size: 3rem; opacity: .6; }
+    .carrinho-vazio p { font-size: .9rem; }
+
+    .item-carrinho {
+      display: flex;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--borda);
+      animation: slideItem .3s ease both;
+    }
+    .item-carrinho:last-child { border-bottom: none; padding-bottom: 0; }
+
+    @keyframes slideItem {
+      from { opacity: 0; transform: translateX(12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .item-img {
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--preto-suave), #2e2e2e);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      overflow: hidden;
+    }
+    .item-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .item-info { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .item-nome { font-size: .92rem; font-weight: 600; color: var(--preto); line-height: 1.3; }
+    .item-preco { font-size: .85rem; font-weight: 700; color: var(--vermelho); }
+
+    .item-controles { display: flex; align-items: center; gap: 8px; }
+
+    .btn-qtd {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--fundo);
+      border: 1px solid var(--borda);
+      border-radius: 8px;
+      color: var(--preto);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s ease;
+      line-height: 1;
+    }
+    .btn-qtd:hover { background: var(--vermelho); border-color: var(--vermelho); color: var(--branco); }
+    .btn-qtd:active { transform: scale(.9); }
+
+    .qtd-valor { min-width: 24px; text-align: center; font-size: .9rem; font-weight: 700; color: var(--preto); }
+
+    .btn-remover {
+      align-self: flex-start;
+      background: transparent;
+      border: none;
+      color: var(--cinza);
+      font-size: .75rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 0;
+      transition: color .2s ease;
+      text-decoration: underline;
+    }
+    .btn-remover:hover { color: var(--vermelho); }
+
+    .carrinho-footer {
+      padding: 16px 20px 20px;
+      border-top: 1px solid var(--borda);
+      background: var(--branco);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .carrinho-footer.escondido { display: none; }
+
+    .linha-resumo { display: flex; justify-content: space-between; font-size: .9rem; color: var(--cinza); }
+
+    .linha-resumo.total {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--preto);
+      padding-top: 8px;
+      border-top: 1px dashed var(--borda);
+    }
+    .linha-resumo.total span:last-child { color: var(--vermelho); }
+
+    .btn-finalizar {
+      margin-top: 6px;
+      background: var(--vermelho);
+      color: var(--branco);
+      border: none;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: .95rem;
+      padding: 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .btn-finalizar:hover {
+      background: var(--vermelho-esc);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(214, 40, 40, .35);
+    }
+    .btn-finalizar:active { transform: scale(.97); }
+
+    /* ===== RESPONSIVO ===== */
+    @media (max-width: 720px) {
+      .nav { display: none; }
+      .header-inner { height: 64px; }
+      .logo { font-size: 1.05rem; }
+      .logo-icon { font-size: 1.4rem; }
+    }
+
+    @media (max-width: 560px) {
+      .cardapio { padding: 40px 0; }
+      .container { padding: 0 16px; }
+      .cardapio-header h2 { font-size: 1.6rem; }
+      .cardapio-header p { font-size: .9rem; }
+      .filtros { gap: 8px; margin-bottom: 24px; }
+      .filtro { padding: 8px 16px; font-size: .8rem; }
+      .cardapio-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .card-info { padding: 12px; gap: 4px; }
+      .card-info h3 { font-size: .9rem; }
+      .card-desc { font-size: .74rem; }
+      .preco { font-size: .95rem; }
+      .card-footer { flex-direction: column; align-items: stretch; gap: 8px; }
+      .btn-add { width: 100%; padding: 9px; font-size: .8rem; }
+    }
+
+    @media (max-width: 480px) {
+      .carrinho-sidebar { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       HEADER
+       ============================================================ -->
+  <header class="header">
+    <div class="container header-inner">
+
+      <a href="#" class="logo">
+        <span class="logo-icon">🍣</span>
+        <span class="logo-text">Sekai<strong>Delivery</strong></span>
+      </a>
+
+      <nav class="nav">
+        <a href="#cardapio">Cardápio</a>
+        <a href="#avaliacoes">Avaliações</a>
+        <a href="#localizacao">Localização</a>
+      </nav>
+
+      <button class="btn-carrinho" id="btn-carrinho" aria-label="Abrir carrinho">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span class="contador oculto" id="contador-carrinho">0</span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- ============================================================
+       SEÇÃO CARDÁPIO
+       ============================================================ -->
+  <section id="cardapio" class="cardapio">
+    <div class="container">
+
+      <header class="cardapio-header">
+        <span class="tag">🍱 Delivery & Retirada</span>
+        <h2>Nosso Cardápio</h2>
+        <p>Escolha seus favoritos, adicione ao carrinho e peça em poucos cliques.</p>
+      </header>
+
+      <div class="filtros" id="filtros">
+        <button class="filtro ativo" data-cat="todos">Todos</button>
+        <button class="filtro" data-cat="sushi">Sushi</button>
+        <button class="filtro" data-cat="temaki">Temaki</button>
+        <button class="filtro" data-cat="hot">Hots</button>
+        <button class="filtro" data-cat="combo">Combos</button>
+        <button class="filtro" data-cat="bebida">Bebidas</button>
+      </div>
+
+      <div class="cardapio-grid" id="cardapio-grid"></div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       OVERLAY + SIDEBAR DO CARRINHO
+       ============================================================ -->
+  <div class="overlay" id="overlay"></div>
+
+  <aside class="carrinho-sidebar" id="carrinho-sidebar" aria-label="Carrinho de compras">
+
+    <div class="carrinho-header">
+      <h2>Seu Pedido 🛒</h2>
+      <button class="btn-fechar" id="btn-fechar" aria-label="Fechar carrinho">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="carrinho-itens" id="carrinho-itens"></div>
+
+    <div class="carrinho-footer escondido" id="carrinho-footer">
+      <div class="linha-resumo">
+        <span>Subtotal</span>
+        <span id="subtotal">R$ 0,00</span>
+      </div>
+      <div class="linha-resumo total">
+        <span>Total</span>
+        <span id="total">R$ 0,00</span>
+      </div>
+      <button class="btn-finalizar" id="btn-finalizar">
+        Finalizar Pedido no WhatsApp
+      </button>
+    </div>
+
+  </aside>
+  <script>
+    const WHATSAPP_NUMERO = "5545999738552";
+    const produtos = [
+      { id: 1,  nome: "Hossomaki Salmão",    desc: "8 peças · salmão fresco enrolados alga",         preco: 28.00, cat: "sushi",  emoji: "🍣", img:"img/hossomaki-salm.webp"},
+      { id: 2,  nome: "Uramaki Filadélfia",  desc: "8 peças · salmão, cream cheese ",                preco: 32.00, cat: "sushi",  emoji: "🍣", img:"img/uramaki-fila.webp" },
+      { id: 3,  nome: "Niguiri Salmão",      desc: "2 peças · salmão sobre arroz temperado",         preco: 14.00, cat: "sushi",  emoji: "🍣", img:"img/niguiri.webp"},
+      { id: 4,  nome: "Gunkan Joy",          desc: "8 peças · gunkan salmao finalizado com joy",     preco: 30.00, cat: "sushi",  emoji: "🍣", img:"img/joe.webp" },
+      { id: 5,  nome: "Temaki Salmão",       desc: "Cone de alga com salmão e arroz",                preco: 24.00, cat: "temaki", emoji: "🌯", img:"img/temaki-salmbom.webp"},
+      { id: 6,  nome: "Temaki Skin",         desc: "Cone de alga com pele de salmão crocante",       preco: 18.00, cat: "temaki", emoji: "🌯", img:"img/tamki-skin.webp" },
+      { id: 7,  nome: "Temaki Filadélfia",   desc: "Cone com salmão, cream cheese e cebolinha",      preco: 26.00, cat: "temaki", emoji: "🌯", img:"img/temaki-salmbom.webp"},
+      { id: 9,  nome: "Hot Filadélfia",      desc: "8 peças · salmão e cream cheese empanados",      preco: 26.00, cat: "hot",    emoji: "🍤", img:"img/hot-fila.webp"},
+      { id: 10, nome: "Combo do mes",        desc: "20 peças variadas + sashimi · ideal para casal", preco: 119.90, cat: "combo", emoji: "🍱", img:"img/combo-mes.webp"},
+      { id: 13, nome: "Guaraná 350ml",       desc: "Lata gelada",                                    preco: 7.00,  cat: "bebida", emoji: "🥤", img:"img/guarana.webp" },
+      { id: 14, nome: "Coca-Cola 350ml",     desc: "Lata gelada",                                    preco: 7.00,  cat: "bebida", emoji: "🥤", img:"img/coca.webp" },
+      { id: 15, nome: "Fanta 350ml",         desc: "lata gelada · ",                                 preco: 7.00,  cat: "bebida", emoji: "🧃", img:"img/fanta.webp" },
+    ];
+
+    /* ===== UTILITÁRIO ===== */
+    const formatarPreco = (v) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+    const lerCarrinho   = () => JSON.parse(localStorage.getItem("carrinho")) || [];
+    const salvarCarrinho = (c) => localStorage.setItem("carrinho", JSON.stringify(c));
+
+    /* ==========================================================
+       CARDÁPIO — renderização e filtros
+       ========================================================== */
+    function renderizarCardapio(categoria = "todos") {
+      const grid = document.getElementById("cardapio-grid");
+      if (!grid) return;
+
+      const filtrados = categoria === "todos"
+        ? produtos
+        : produtos.filter(p => p.cat === categoria);
+
+      grid.innerHTML = "";
+
+      if (filtrados.length === 0) {
+        grid.innerHTML = `<p style="text-align:center;color:var(--cinza);grid-column:1/-1">Nenhum produto nesta categoria.</p>`;
+        return;
+      }
+
+      filtrados.forEach((p, i) => {
+        const midia = p.img
+          ? `<img src="${p.img}" alt="${p.nome}" loading="lazy">`
+          : `<span class="placeholder-emoji">${p.emoji}</span>`;
+
+        grid.innerHTML += `
+          <article class="card-produto" style="animation-delay: ${i * 40}ms">
+            <div class="card-img">${midia}</div>
+            <div class="card-info">
+              <h3>${p.nome}</h3>
+              <p class="card-desc">${p.desc}</p>
+              <div class="card-footer">
+                <span class="preco">${formatarPreco(p.preco)}</span>
+                <button class="btn-add" onclick="adicionarAoCarrinho(${p.id}, this)">+ Adicionar</button>
+              </div>
+            </div>
+          </article>
+        `;
+      });
+    }
+
+    document.getElementById("filtros").addEventListener("click", (e) => {
+      const btn = e.target.closest(".filtro");
+      if (!btn) return;
+      document.querySelectorAll(".filtro").forEach(f => f.classList.remove("ativo"));
+      btn.classList.add("ativo");
+      renderizarCardapio(btn.dataset.cat);
+    });
+
+    /* ==========================================================
+       CARRINHO — adicionar, alterar, remover, totais
+       ========================================================== */
+    function adicionarAoCarrinho(id, btn) {
+      const carrinho = lerCarrinho();
+      const produto = produtos.find(p => p.id === id);
+      if (!produto) return;
+
+      const item = carrinho.find(i => i.id === id);
+
+      if (item) {
+        item.qtd++;
+      } else {
+        carrinho.push({
+          id: produto.id,
+          nome: produto.nome,
+          preco: produto.preco,
+          emoji: produto.emoji,
+          img: produto.img || null,
+          qtd: 1
+        });
+      }
+
+      salvarCarrinho(carrinho);
+      atualizarContador();
+      renderizarCarrinho();
+
+      if (btn) {
+        btn.textContent = "✓ Adicionado";
+        btn.classList.add("adicionado");
+        setTimeout(() => {
+          btn.textContent = "+ Adicionar";
+          btn.classList.remove("adicionado");
+        }, 1200);
+      }
+    }
+
+    function alterarQtd(id, delta) {
+      const carrinho = lerCarrinho();
+      const item = carrinho.find(i => i.id === id);
+      if (!item) return;
+
+      item.qtd += delta;
+      if (item.qtd <= 0) {
+        const idx = carrinho.indexOf(item);
+        carrinho.splice(idx, 1);
+      }
+
+      salvarCarrinho(carrinho);
+      renderizarCarrinho();
+      atualizarContador();
+    }
+
+    function removerItem(id) {
+      const carrinho = lerCarrinho().filter(i => i.id !== id);
+      salvarCarrinho(carrinho);
+      renderizarCarrinho();
+      atualizarContador();
+    }
+
+    function renderizarCarrinho() {
+      const carrinho = lerCarrinho();
+      const lista = document.getElementById("carrinho-itens");
+      const footer = document.getElementById("carrinho-footer");
+
+      if (carrinho.length === 0) {
+        lista.innerHTML = `
+          <div class="carrinho-vazio">
+            <span class="emoji">🍣</span>
+            <p>Seu carrinho está vazio.<br>Adicione itens do cardápio!</p>
+          </div>
+        `;
+        footer.classList.add("escondido");
+        return;
+      }
+
+      footer.classList.remove("escondido");
+
+      lista.innerHTML = carrinho.map(item => {
+        const midia = item.img
+          ? `<img src="${item.img}" alt="${item.nome}">`
+          : (item.emoji || "🍱");
+
+        return `
+          <div class="item-carrinho" data-id="${item.id}">
+            <div class="item-img">${midia}</div>
+            <div class="item-info">
+              <span class="item-nome">${item.nome}</span>
+              <span class="item-preco">${formatarPreco(item.preco * item.qtd)}</span>
+              <div class="item-controles">
+                <button class="btn-qtd" onclick="alterarQtd(${item.id}, -1)">−</button>
+                <span class="qtd-valor">${item.qtd}</span>
+                <button class="btn-qtd" onclick="alterarQtd(${item.id}, 1)">+</button>
+              </div>
+            </div>
+            <button class="btn-remover" onclick="removerItem(${item.id})">remover</button>
+          </div>
+        `;
+      }).join("");
+
+      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+      document.getElementById("subtotal").textContent = formatarPreco(subtotal);
+      document.getElementById("total").textContent    = formatarPreco(subtotal);
+    }
+
+    /* ==========================================================
+       HEADER — contador do carrinho
+       ========================================================== */
+    function atualizarContador() {
+      const carrinho = lerCarrinho();
+      const total = carrinho.reduce((s, i) => s + i.qtd, 0);
+      const el = document.getElementById("contador-carrinho");
+      if (!el) return;
+      el.textContent = total;
+      el.classList.toggle("oculto", total === 0);
+    }
+
+    /* ==========================================================
+       SIDEBAR — abrir/fechar
+       ========================================================== */
+    const sidebar = document.getElementById("carrinho-sidebar");
+    const overlay = document.getElementById("overlay");
+
+    function abrirCarrinho() {
+      renderizarCarrinho();
+      sidebar.classList.add("ativo");
+      overlay.classList.add("ativo");
+      document.body.style.overflow = "hidden";
+    }
+
+    function fecharCarrinho() {
+      sidebar.classList.remove("ativo");
+      overlay.classList.remove("ativo");
+      document.body.style.overflow = "";
+    }
+
+    document.getElementById("btn-carrinho").addEventListener("click", abrirCarrinho);
+    document.getElementById("btn-fechar").addEventListener("click", fecharCarrinho);
+    overlay.addEventListener("click", fecharCarrinho);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") fecharCarrinho();
+    });
+
+    /* ==========================================================
+       FINALIZAR PEDIDO — WhatsApp
+       ========================================================== */
+    document.getElementById("btn-finalizar").addEventListener("click", () => {
+      const carrinho = lerCarrinho();
+      if (carrinho.length === 0) return;
+
+      const subtotal = carrinho.reduce((s, i) => s + i.preco * i.qtd, 0);
+
+      let msg = `*🍣 NOVO PEDIDO*\n\n`;
+      msg += `*Itens:*\n`;
+      carrinho.forEach(i => {
+        msg += `• ${i.qtd}x ${i.nome} — ${formatarPreco(i.preco * i.qtd)}\n`;
+      });
+      msg += `\n*Total: ${formatarPreco(subtotal)}*\n\n`;
+      msg += `Aguardo confirmação para pagamento e entrega. Obrigado! 🙏`;
+
+      const url = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(msg)}`;
+      window.open(url, "_blank");
+    });
+
+    /* ==========================================================
+       INICIALIZAÇÃO
+       ========================================================== */
+    renderizarCardapio();
+    renderizarCarrinho();
+    atualizarContador();
+  </script>
+</body>
+</html>
